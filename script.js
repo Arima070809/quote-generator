@@ -82,7 +82,7 @@ let currentCategory = "both";
  
 // ─── Load ─────────────────────────────────────────────────────────────────────
  
-const QUOTES_GDRIVE = "https://github.com/Arima070809/quote-generator/releases/download/v1.0/quotes.csv";
+const QUOTES_GDRIVE = "https://corsproxy.io/?url=https://github.com/Arima070809/quote-generator/releases/download/v1.0/quotes.csv";
  
 // Try local file first, fall back to Google Drive if it fails
 async function fetchGeneralCSV() {
