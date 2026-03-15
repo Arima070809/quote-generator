@@ -1,0 +1,205 @@
+
+ 
+/* ─── Base ─────────────────────────────────────────────────────────────────── */
+ 
+body {
+  margin: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  background: linear-gradient(45deg, #180d0a, #e8e5e2);
+}
+ 
+.container {
+  text-align: center;
+  font-family: 'Pacifico', cursive;
+  color: rgb(0, 0, 0);
+}
+ 
+.container h1 {
+  color: rgb(0, 0, 100);
+}
+ 
+/* ─── Quote Box ─────────────────────────────────────────────────────────────── */
+ 
+.quote-box {
+  background-color: rgba(255, 255, 255, 0.2);
+  border-radius: 10px;
+  padding: 20px;
+  box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.2);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+ 
+.quote {
+  font-size: 24px;
+  margin-bottom: 20px;
+  opacity: 0;
+  animation: fadeIn 1s ease-in-out forwards;
+}
+ 
+.quote-attribution {
+  font-size: 16px;
+  opacity: 0.75;
+  margin-top: 8px;
+  display: block;
+}
+ 
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+ 
+/* ─── Buttons ───────────────────────────────────────────────────────────────── */
+ 
+.btn {
+  padding: 10px 20px;
+  background-color: #180d0a;
+  border: none;
+  border-radius: 5px;
+  color: #fff;
+  cursor: pointer;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+ 
+.btn:hover {
+  background-color: #180d0a;
+  box-shadow: 0px 0px 20px rgba(0, 0, 0, 0.2);
+}
+ 
+.btn-secondary {
+  background-color: #444;
+  font-size: 14px;
+  padding: 10px 16px;
+}
+ 
+.btn-secondary:hover {
+  background-color: #222;
+}
+ 
+.btn-clear {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  width: 36px;
+  height: 36px;
+  font-size: 14px;
+  cursor: pointer;
+  display: none; /* shown via JS when input has value */
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s;
+}
+ 
+.btn-clear:hover {
+  background: rgba(255, 255, 255, 0.35);
+}
+ 
+/* ─── Quote Actions ─────────────────────────────────────────────────────────── */
+ 
+.quote-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+ 
+/* ─── Category Screen ───────────────────────────────────────────────────────── */
+ 
+.category-prompt {
+  font-size: 22px;
+  margin-bottom: 24px;
+}
+ 
+.category-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: 100%;
+}
+ 
+.cat-btn {
+  font-size: 18px;
+  padding: 14px 20px;
+  font-family: 'Pacifico', cursive;
+}
+ 
+/* ─── Search Bar ────────────────────────────────────────────────────────────── */
+ 
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: 8px;
+  position: relative;
+}
+ 
+#author-search {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 6px;
+  border: none;
+  font-size: 15px;
+  font-family: 'Pacifico', cursive;
+  background: rgba(255, 255, 255, 0.85);
+  color: #111;
+  outline: none;
+}
+ 
+#author-search:focus {
+  background: #fff;
+  box-shadow: 0 0 0 2px rgba(24, 13, 10, 0.4);
+}
+ 
+/* ─── Autocomplete Suggestions ──────────────────────────────────────────────── */
+ 
+.suggestions {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  right: 42px;
+  background: #fff;
+  border-radius: 6px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.2);
+  z-index: 10;
+  overflow: hidden;
+}
+ 
+.suggestions.hidden {
+  display: none;
+}
+ 
+.suggestion-item {
+  padding: 10px 14px;
+  font-size: 15px;
+  color: #111;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.15s;
+}
+ 
+.suggestion-item:hover {
+  background: #f0ece8;
+}
+ 
+.suggestion-item strong {
+  color: #180d0a;
+}
+ 
+/* ─── Author Badge ──────────────────────────────────────────────────────────── */
+ 
+.author-badge {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.8);
+  background: rgba(0, 0, 0, 0.25);
+  padding: 4px 10px;
+  border-radius: 20px;
+  margin-bottom: 10px;
+}
+ 
+.author-badge.hidden {
+  display: none;
+}
