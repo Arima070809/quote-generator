@@ -1,11 +1,11 @@
 // ─── Helpers ──────────────────────────────────────────────────────────────────
-
+ 
 function normaliseQuotes(text) {
   return text
     .replace(/[\u201C\u201D\u201E\u201F\u2033\u2036]/g, '"')
     .replace(/[\u2018\u2019\u201A\u201B\u2032\u2035]/g, "'");
 }
-
+ 
 function cleanField(str) {
   if (!str) return "";
   let s = str.trim();
@@ -14,12 +14,12 @@ function cleanField(str) {
   }
   return s;
 }
-
+ 
 function splitCSVLine(line) {
   const result = [];
   let current = "";
   let inQuotes = false;
-
+ 
   for (let i = 0; i < line.length; i++) {
     const ch = line[i];
     if (ch === '"') {
@@ -35,9 +35,9 @@ function splitCSVLine(line) {
   result.push(current);
   return result;
 }
-
+ 
 // ─── Parsers ──────────────────────────────────────────────────────────────────
-
+ 
 function parseAnimeCSV(raw) {
   const text = normaliseQuotes(raw);
   return text.trim().split(/\r?\n/).slice(1).map(line => {
@@ -54,7 +54,7 @@ function parseAnimeCSV(raw) {
     };
   }).filter(Boolean);
 }
-
+ 
 function parseGeneralCSV(raw) {
   const text = normaliseQuotes(raw);
   return text.trim().split(/\r?\n/).slice(1).map(line => {
@@ -70,33 +70,58 @@ function parseGeneralCSV(raw) {
     };
   }).filter(Boolean);
 }
-
+ 
 // ─── State ────────────────────────────────────────────────────────────────────
-
+ 
 let animeQuotes   = [];
 let generalQuotes = [];
 let activePool    = [];   // full pool for chosen category
 let filteredPool  = [];   // pool after optional author filter
 let lastIndex     = -1;
 let currentCategory = "both";
-
+ 
 // ─── Load ─────────────────────────────────────────────────────────────────────
-
+ 
+const QUOTES_GDRIVE = "https://drive.google.com/uc?export=download&id=1s7TYx3r7OC7zo1Ilp72uM8pXO7yZSZwD";
+ 
+// Try local file first, fall back to Google Drive if it fails
+async function fetchGeneralCSV() {
+  try {
+    const res = await fetch("quotes.csv");
+    if (!res.ok) throw new Error("Local file not found");
+    const text = await res.text();
+    // If we got an HTML page instead of CSV (happens on some servers), fall back
+    if (text.trim().startsWith("<")) throw new Error("Got HTML instead of CSV");
+    console.log("Loaded quotes.csv from local file");
+    return text;
+  } catch {
+    console.log("Local quotes.csv not available, fetching from Google Drive...");
+    try {
+      const res = await fetch(QUOTES_GDRIVE);
+      if (!res.ok) throw new Error("Google Drive fetch failed");
+      return await res.text();
+    } catch {
+      console.warn("Could not load quotes from either source");
+      return "";
+    }
+  }
+}
+ 
 async function loadAllQuotes() {
   const [animeRaw, generalRaw] = await Promise.all([
     fetch("AnimeQuotes.csv").then(r => r.text()).catch(() => ""),
-    fetch("https://drive.google.com/uc?export=download&id=1s7TYx3r7OC7zo1Ilp72uM8pXO7yZSZwD").then(r => r.text()).catch(() => ""),
+    fetchGeneralCSV(),
   ]);
-
+ 
   animeQuotes   = animeRaw   ? parseAnimeCSV(animeRaw)     : [];
   generalQuotes = generalRaw ? parseGeneralCSV(generalRaw) : [];
-
+ 
   console.log(`Anime: ${animeQuotes.length} | General: ${generalQuotes.length}`);
   showCategoryScreen();
 }
-
+ 
 // ─── Category Screen ──────────────────────────────────────────────────────────
-
+ 
 function showCategoryScreen() {
   const container = document.querySelector(".container");
   container.innerHTML = `
@@ -110,7 +135,7 @@ function showCategoryScreen() {
       </div>
     </div>
   `;
-
+ 
   document.querySelectorAll(".cat-btn").forEach(btn => {
     btn.addEventListener("click", () => {
       currentCategory = btn.dataset.cat;
@@ -123,15 +148,15 @@ function showCategoryScreen() {
     });
   });
 }
-
+ 
 // ─── Quote Screen ─────────────────────────────────────────────────────────────
-
+ 
 function showQuoteScreen(searchTerm = "") {
   const container = document.querySelector(".container");
   container.innerHTML = `
     <h1>THINK ABOUT IT</h1>
     <div class="quote-box">
-
+ 
       <div class="search-bar">
         <input
           type="text"
@@ -142,27 +167,27 @@ function showQuoteScreen(searchTerm = "") {
         />
         <button class="btn btn-clear" id="clear-search" title="Clear">✕</button>
       </div>
-
+ 
       <div id="suggestions" class="suggestions hidden"></div>
-
+ 
       <p class="quote" id="quote"></p>
-
+ 
       <div id="author-filter-badge" class="author-badge hidden"></div>
-
+ 
       <div class="quote-actions">
         <button class="btn" id="new-quote">New Quote</button>
         <button class="btn btn-secondary" id="change-category">Change Category</button>
       </div>
     </div>
   `;
-
+ 
   const searchInput  = document.getElementById("author-search");
   const suggestionsEl = document.getElementById("suggestions");
   const clearBtn     = document.getElementById("clear-search");
-
+ 
   // Show/hide clear button
   toggleClearBtn(searchTerm);
-
+ 
   // If restoring a search term, apply the filter right away
   if (searchTerm) {
     applyAuthorFilter(searchTerm);
@@ -170,12 +195,12 @@ function showQuoteScreen(searchTerm = "") {
     filteredPool = [...activePool];
     showRandomQuote();
   }
-
+ 
   // ── Autocomplete ──
   searchInput.addEventListener("input", () => {
     const val = searchInput.value.trim().toLowerCase();
     toggleClearBtn(searchInput.value);
-
+ 
     if (!val) {
       hideSuggestions();
       filteredPool = [...activePool];
@@ -184,24 +209,24 @@ function showQuoteScreen(searchTerm = "") {
       showRandomQuote();
       return;
     }
-
+ 
     // Build unique author list from active pool
     const matches = [...new Set(
       activePool
         .map(q => q.author)
         .filter(a => a && a.toLowerCase().includes(val))
     )].sort().slice(0, 6); // show up to 6 suggestions
-
+ 
     if (matches.length === 0) {
       hideSuggestions();
       return;
     }
-
+ 
     suggestionsEl.innerHTML = matches
       .map(a => `<div class="suggestion-item" data-author="${a}">${highlightMatch(a, val)}</div>`)
       .join("");
     suggestionsEl.classList.remove("hidden");
-
+ 
     suggestionsEl.querySelectorAll(".suggestion-item").forEach(item => {
       item.addEventListener("click", () => {
         searchInput.value = item.dataset.author;
@@ -211,14 +236,14 @@ function showQuoteScreen(searchTerm = "") {
       });
     });
   });
-
+ 
   // Hide suggestions when clicking outside
   document.addEventListener("click", (e) => {
     if (!e.target.closest(".search-bar") && !e.target.closest(".suggestions")) {
       hideSuggestions();
     }
   }, { once: false });
-
+ 
   // Clear button
   clearBtn.addEventListener("click", () => {
     searchInput.value = "";
@@ -229,7 +254,7 @@ function showQuoteScreen(searchTerm = "") {
     lastIndex = -1;
     showRandomQuote();
   });
-
+ 
   // Enter key — apply top suggestion or exact match
   searchInput.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
@@ -240,17 +265,17 @@ function showQuoteScreen(searchTerm = "") {
       }
     }
   });
-
+ 
   document.getElementById("new-quote").addEventListener("click", showRandomQuote);
   document.getElementById("change-category").addEventListener("click", showCategoryScreen);
 }
-
+ 
 // ─── Author Filter ────────────────────────────────────────────────────────────
-
+ 
 function applyAuthorFilter(name) {
   const lower = name.toLowerCase();
   const matches = activePool.filter(q => q.author.toLowerCase().includes(lower));
-
+ 
   if (matches.length === 0) {
     document.getElementById("quote").innerHTML = `
       <span class="quote-text">No quotes found for "<strong>${name}</strong>".</span>
@@ -259,36 +284,36 @@ function applyAuthorFilter(name) {
     filteredPool = [];
     return;
   }
-
+ 
   filteredPool = matches;
   lastIndex = -1;
-
+ 
   // Show badge with match count
   const badge = document.getElementById("author-filter-badge");
   const uniqueAuthor = matches[0].author; // use first matched author's real name
   badge.textContent = `Showing ${matches.length} quote${matches.length > 1 ? "s" : ""} by ${uniqueAuthor}`;
   badge.classList.remove("hidden");
-
+ 
   showRandomQuote();
 }
-
+ 
 function clearBadge() {
   const badge = document.getElementById("author-filter-badge");
   if (badge) badge.classList.add("hidden");
 }
-
+ 
 // ─── Suggestion Helpers ───────────────────────────────────────────────────────
-
+ 
 function hideSuggestions() {
   const el = document.getElementById("suggestions");
   if (el) el.classList.add("hidden");
 }
-
+ 
 function toggleClearBtn(value) {
   const btn = document.getElementById("clear-search");
   if (btn) btn.style.display = value ? "flex" : "none";
 }
-
+ 
 // Wraps matched portion in <strong> for the suggestion dropdown
 function highlightMatch(author, query) {
   const i = author.toLowerCase().indexOf(query);
@@ -299,32 +324,32 @@ function highlightMatch(author, query) {
     author.slice(i + query.length)
   );
 }
-
+ 
 // ─── Display ──────────────────────────────────────────────────────────────────
-
+ 
 function showRandomQuote() {
   if (filteredPool.length === 0) return;
-
+ 
   let index;
   do {
     index = Math.floor(Math.random() * filteredPool.length);
   } while (index === lastIndex && filteredPool.length > 1);
   lastIndex = index;
-
+ 
   const { text, attribution } = filteredPool[index];
   const quoteEl = document.getElementById("quote");
   if (!quoteEl) return;
-
+ 
   quoteEl.style.animation = "none";
   quoteEl.offsetHeight;
   quoteEl.style.animation = "";
-
+ 
   quoteEl.innerHTML = `
     <span class="quote-text">"${text}"</span>
     ${attribution ? `<br><span class="quote-attribution">— ${attribution}</span>` : ""}
   `;
 }
-
+ 
 // ─── Init ─────────────────────────────────────────────────────────────────────
-
+ 
 loadAllQuotes();
