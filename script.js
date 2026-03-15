@@ -85,7 +85,7 @@ let currentCategory = "both";
 async function loadAllQuotes() {
   const [animeRaw, generalRaw] = await Promise.all([
     fetch("AnimeQuotes.csv").then(r => r.text()).catch(() => ""),
-    fetch("quotes.csv").then(r => r.text()).catch(() => ""),
+    fetch("https://drive.google.com/uc?export=download&id=1s7TYx3r7OC7zo1Ilp72uM8pXO7yZSZwD").then(r => r.text()).catch(() => ""),
   ]);
 
   animeQuotes   = animeRaw   ? parseAnimeCSV(animeRaw)     : [];
